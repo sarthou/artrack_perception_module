@@ -1,0 +1,10 @@
+<library path="lib/libartrack_perception_module">
+
+  <class type="owds::ArTrackPerceptionModule" base_class_type="owds::PerceptionModuleBase_<owds::Object>">
+    <description>
+      An object perception module using the Ar_track_alvar system.
+      Possible parameters are: min_track_err.
+    </description>
+  </class>
+
+</library>
