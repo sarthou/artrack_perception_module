@@ -22,5 +22,4 @@ add_library(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
                       ${catkin_LIBRARIES}
-                      overworld_bullet_lib
-                      overworld_types_lib)
+                      ${overworld_LIBRARIES})
