@@ -202,15 +202,15 @@ bool ArTrackPerceptionModule::createNewEntity(const ar_track_alvar_msgs::AlvarMa
   ids_map_[marker.id] = true_id[0];
   Object obj(true_id[0]);
 
-  Shape_t shape = PerceptionModuleBase_::getEntityShapeFromOntology(onto_, obj.id());
+  Shape_t shape = ontology::getEntityShape(onto_, obj.id());
   if(shape.type == SHAPE_NONE)
   {
     shape.type = SHAPE_CUBE;
-    shape.color = PerceptionModuleBase_::getEntityColorFromOntology(onto_, obj.id(), {1,0,0});
+    shape.color = ontology::getEntityColor(onto_, obj.id(), {1,0,0});
     shape.scale = {0.05, 0.05, 0.003};
   }
   obj.setShape(shape);
-  obj.setMass(PerceptionModuleBase_::getEntityMassFromOntology(onto_, obj.id()));
+  obj.setMass(ontology::getEntityMass(onto_, obj.id()));
 
   percepts_.insert(std::make_pair(obj.id(), obj));
 
