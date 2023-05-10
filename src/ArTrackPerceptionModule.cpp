@@ -18,9 +18,13 @@ ArTrackPerceptionModule::ArTrackPerceptionModule() : PerceptionModuleRosSyncBase
 bool ArTrackPerceptionModule::closeInitialization()
 {
   ontologies_manipulator_ = new OntologiesManipulator(n_);
-  ontologies_manipulator_->waitInit();
   std::string robot_name = robot_agent_->getId();
-  ontologies_manipulator_->add(robot_name);
+  if(ontologies_manipulator_->add(robot_name) == false)
+  {
+    // We first try without the wait as its block a long while service is available
+    ontologies_manipulator_->waitInit();
+    ontologies_manipulator_->add(robot_name);
+  }
   onto_ = ontologies_manipulator_->get(robot_name);
   onto_->close();
 
