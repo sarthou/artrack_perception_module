@@ -57,7 +57,18 @@ bool ArTrackPerceptionModule::perceptionCallback(const ar_track_alvar_msgs::Alva
       auto old_pose = visible_marker.pose;
       if (old_pose.header.frame_id[0] == '/')
           old_pose.header.frame_id = old_pose.header.frame_id.substr(1);
-      tf_buffer_.transform(old_pose, marker_pose, "map", ros::Duration(1.0));
+      
+      try {
+        tf_buffer_.transform(old_pose, marker_pose, "map", ros::Duration(1.0));
+      }
+      catch (const tf2::TransformException& ex) {
+        ShellDisplay::error("[ArTrackPerceptionModule]" + std::string(ex.what()));
+        return false;
+      }
+      catch (...) {
+        return false;
+      }
+      
       if (isInValidArea(Pose(marker_pose)) && visible_marker.confidence < min_track_err_)
           valid_visible_markers.push_back(visible_marker);
       else
@@ -136,7 +147,18 @@ void ArTrackPerceptionModule::setPointOfInterest(const ar_track_alvar_msgs::Alva
     auto old_pose = visible_marker.pose;
     if(old_pose.header.frame_id[0] == '/')
       old_pose.header.frame_id = old_pose.header.frame_id.substr(1);
-    tf_buffer_.transform(old_pose, map_to_visible_marker_g, "map", ros::Duration(1.0));
+
+    try {
+      tf_buffer_.transform(old_pose, map_to_visible_marker_g, "map", ros::Duration(1.0));
+    }
+    catch (const tf2::TransformException& ex) {
+      ShellDisplay::error("[ArTrackPerceptionModule]" + std::string(ex.what()));
+      return;
+    }
+    catch (...) {
+      return;
+    }
+    
     Pose map_to_visible_marker(map_to_visible_marker_g);
     Pose map_to_marked_object = obj_it->second.pose();
 
@@ -181,15 +203,21 @@ void ArTrackPerceptionModule::updateEntities(const ar_track_alvar_msgs::AlvarMar
       if (frame_id[0] == '/')
         frame_id = frame_id.substr(1);
 
+      geometry_msgs::TransformStamped to_map;
       try {
-        geometry_msgs::TransformStamped to_map = tf_buffer_.lookupTransform("map", frame_id, main_marker.header.stamp, ros::Duration(1.0));
-        geometry_msgs::PoseStamped marker_in_map;
-        tf2::doTransform(main_marker.pose, marker_in_map, to_map);
-        it_obj->second.updatePose(marker_in_map);
+        to_map = tf_buffer_.lookupTransform("map", frame_id, main_marker.header.stamp, ros::Duration(1.0));
       }
       catch (const tf2::TransformException& ex) {
         ShellDisplay::error("[ArTrackPerceptionModule]" + std::string(ex.what()));
+        return;
       }
+      catch (...) {
+        return;
+      }
+
+      geometry_msgs::PoseStamped marker_in_map;
+      tf2::doTransform(main_marker.pose, marker_in_map, to_map);
+      it_obj->second.updatePose(marker_in_map);
   }
 }
 
