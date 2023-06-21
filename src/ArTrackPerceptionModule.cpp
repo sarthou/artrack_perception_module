@@ -38,7 +38,7 @@ void ArTrackPerceptionModule::setParameter(const std::string& parameter_name, co
   if(parameter_name == "min_track_err")
     min_track_err_ = std::stod(parameter_value);
   else
-      ShellDisplay::warning("[Pr2GripperPerceptionModule] Unkown parameter " + parameter_name);
+      ShellDisplay::warning("[ArTrackPerceptionModule] Unkown parameter " + parameter_name);
 }
 
 bool ArTrackPerceptionModule::perceptionCallback(const ar_track_alvar_msgs::AlvarMarkers& markers,
