@@ -17,7 +17,7 @@ ArTrackPerceptionModule::ArTrackPerceptionModule() : PerceptionModuleRosSyncBase
 
 bool ArTrackPerceptionModule::closeInitialization()
 {
-  ontologies_manipulator_ = new OntologiesManipulator(n_);
+  ontologies_manipulator_ = new onto::OntologiesManipulator(n_);
   std::string robot_name = robot_agent_->getId();
   if(ontologies_manipulator_->add(robot_name) == false)
   {

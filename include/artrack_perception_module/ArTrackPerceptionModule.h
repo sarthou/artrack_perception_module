@@ -33,8 +33,8 @@ private:
   std::unordered_set<size_t> blacklist_ids_;
   std::unordered_set<size_t> visible_markers_with_pois_;  // The id of the visible markers that we already seen at least once and were valid (and thus, have their pois created)
 
-  OntologiesManipulator* ontologies_manipulator_;
-  OntologyManipulator* onto_;
+  onto::OntologiesManipulator* ontologies_manipulator_;
+  onto::OntologyManipulator* onto_;
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf2_listener_;
