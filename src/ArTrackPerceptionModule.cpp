@@ -75,7 +75,7 @@ bool ArTrackPerceptionModule::perceptionCallback(const ar_track_alvar_msgs::Alva
           invalid_main_markers_ids.insert(visible_marker.main_id);
   }
 
-  updateEntities(markers, invalid_main_markers_ids);
+  updatePercepts(markers, invalid_main_markers_ids);
   setAllPoiUnseen();
 
   for (auto& visible_marker : valid_visible_markers)
@@ -126,12 +126,12 @@ void ArTrackPerceptionModule::setPointOfInterest(const ar_track_alvar_msgs::Alva
     }
 
     std::string poi_id = "ar_" + std::to_string(visible_marker.id);
-    auto obj_it = percepts_.find(id_it->second);
+    auto prc_obj_it = percepts_.find(id_it->second);
 
-    if(obj_it->second.isLocated() == false)
+    if(prc_obj_it->second.isLocated() == false)
       return;
 
-    for (const auto& poi : obj_it->second.getPointsOfInterest())
+    for (const auto& poi : prc_obj_it->second.getPointsOfInterest())
         if (poi.getId() == poi_id)
             return;
 
@@ -160,15 +160,15 @@ void ArTrackPerceptionModule::setPointOfInterest(const ar_track_alvar_msgs::Alva
     }
     
     Pose map_to_visible_marker(map_to_visible_marker_g);
-    Pose map_to_marked_object = obj_it->second.pose();
+    Pose map_to_marked_percept_object = prc_obj_it->second.pose();
 
-    Pose marker_in_marked_obj = map_to_visible_marker.transformIn(map_to_marked_object);
+    Pose marker_in_marked_prc_obj = map_to_visible_marker.transformIn(map_to_marked_percept_object);
     for (const auto& sub_poi : sub_pois)
     {
-      Pose marked_obj_to_poi = marker_in_marked_obj * sub_poi;
+      Pose marked_obj_to_poi = marker_in_marked_prc_obj * sub_poi;
       p.addPoint(marked_obj_to_poi);
     }
-    obj_it->second.addPointOfInterest(p);
+    prc_obj_it->second.addPointOfInterest(p);
 }
 
 void ArTrackPerceptionModule::setAllPoiUnseen()
@@ -180,7 +180,7 @@ void ArTrackPerceptionModule::setAllPoiUnseen()
   }
 }
 
-void ArTrackPerceptionModule::updateEntities(const ar_track_alvar_msgs::AlvarMarkers& main_markers,
+void ArTrackPerceptionModule::updatePercepts(const ar_track_alvar_msgs::AlvarMarkers& main_markers,
                                              const std::unordered_set<size_t>& invalid_main_markers_ids)
 {
   for(const auto& main_marker : main_markers.markers)
@@ -194,11 +194,11 @@ void ArTrackPerceptionModule::updateEntities(const ar_track_alvar_msgs::AlvarMar
       }
       else if (ids_map_.find(main_marker.id) == ids_map_.end())
       {
-          if(createNewEntity(main_marker) == false)
+          if(createNewPercept(main_marker) == false)
             continue;
       }
 
-      auto it_obj = percepts_.find(ids_map_[main_marker.id]);
+      auto it_obj_prc = percepts_.find(ids_map_[main_marker.id]);
       std::string frame_id = main_marker.header.frame_id;
       if (frame_id[0] == '/')
         frame_id = frame_id.substr(1);
@@ -217,11 +217,11 @@ void ArTrackPerceptionModule::updateEntities(const ar_track_alvar_msgs::AlvarMar
 
       geometry_msgs::PoseStamped marker_in_map;
       tf2::doTransform(main_marker.pose, marker_in_map, to_map);
-      it_obj->second.updatePose(marker_in_map);
+      it_obj_prc->second.updatePose(marker_in_map);
   }
 }
 
-bool ArTrackPerceptionModule::createNewEntity(const ar_track_alvar_msgs::AlvarMarker& marker)
+bool ArTrackPerceptionModule::createNewPercept(const ar_track_alvar_msgs::AlvarMarker& marker)
 {
   auto true_id = onto_->individuals.getFrom("hasArId", "real#"+std::to_string(marker.id));
   if(true_id.size() == 0)
@@ -232,19 +232,19 @@ bool ArTrackPerceptionModule::createNewEntity(const ar_track_alvar_msgs::AlvarMa
   }
 
   ids_map_[marker.id] = true_id[0];
-  Object obj(true_id[0]);
+  Object obj_prc(true_id[0]);
 
-  Shape_t shape = ontology::getEntityShape(onto_, obj.id());
+  Shape_t shape = ontology::getEntityShape(onto_, obj_prc.id());
   if(shape.type == SHAPE_NONE)
   {
     shape.type = SHAPE_CUBE;
-    shape.color = ontology::getEntityColor(onto_, obj.id(), {1,0,0});
+    shape.color = ontology::getEntityColor(onto_, obj_prc.id(), {1,0,0});
     shape.scale = {0.05, 0.05, 0.003};
   }
-  obj.setShape(shape);
-  obj.setMass(ontology::getEntityMass(onto_, obj.id()));
+  obj_prc.setShape(shape);
+  obj_prc.setMass(ontology::getEntityMass(onto_, obj_prc.id()));
 
-  percepts_.insert(std::make_pair(obj.id(), obj));
+  percepts_.insert(std::make_pair(obj_prc.id(), obj_prc));
 
   return true;
 }
