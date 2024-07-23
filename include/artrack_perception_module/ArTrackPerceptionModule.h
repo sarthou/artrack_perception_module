@@ -49,7 +49,7 @@ namespace owds
     bool perceptionCallback(const ar_track_alvar_msgs::AlvarMarkers &markers,
                             const ar_track_alvar_msgs::AlvarVisibleMarkers &visible_markers) override;
 
-    bool sensorHasMoved(); //TODO adapt
+    bool sensorHasMoved();
     bool isInValidArea(const Pose &tag_pose);
 
     void setPointOfInterest(const ar_track_alvar_msgs::AlvarVisibleMarker &visible_marker);
