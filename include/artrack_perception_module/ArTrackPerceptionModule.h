@@ -1,6 +1,8 @@
 #ifndef OWDS_ARTRACKPERCEPTIONMODULE_H
 #define OWDS_ARTRACKPERCEPTIONMODULE_H
 
+#include "ontologenius/OntologiesManipulator.h"
+
 #include "overworld/BasicTypes/Object.h"
 #include "overworld/BasicTypes/Percept.h"
 #include "overworld/BasicTypes/Agent.h"
@@ -9,8 +11,6 @@
 
 #include "ar_track_alvar_msgs/AlvarMarkers.h"
 #include "ar_track_alvar_msgs/AlvarVisibleMarkers.h"
-
-#include "ontologenius/OntologiesManipulator.h"
 
 #include <map>
 #include <unordered_set>
