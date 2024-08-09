@@ -12,14 +12,17 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>ar_track_alvar_msgs</build_depend>
   <build_depend>overworld</build_depend>
+  <build_depend>ontologenius</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>roscpp</build_depend>
   <build_export_depend>ar_track_alvar_msgs</build_export_depend>
   <build_export_depend>overworld</build_export_depend>
+  <build_export_depend>ontologenius</build_export_depend>
   <build_export_depend>pluginlib</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <exec_depend>ar_track_alvar_msgs</exec_depend>
   <exec_depend>overworld</exec_depend>
+  <exec_depend>ontologenius</exec_depend>
   <exec_depend>pluginlib</exec_depend>
   <exec_depend>roscpp</exec_depend>
 
