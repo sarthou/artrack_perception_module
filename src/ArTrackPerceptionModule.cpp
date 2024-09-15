@@ -51,11 +51,13 @@ namespace owds
   bool ArTrackPerceptionModule::perceptionCallback(const ar_track_alvar_msgs::AlvarMarkers &markers,
                                                    const ar_track_alvar_msgs::AlvarVisibleMarkers &visible_markers)
   {
-    if(sensor_id_.empty())
+    if(sensor_ == nullptr)
     {
-      sensor_id_ = markers.header.frame_id;
+      if(sensor_id_.empty())
+        sensor_id_ = markers.header.frame_id;
       setSensorPtr();
     }
+    
 
     if (robot_agent_ == nullptr)
       return false;
@@ -293,10 +295,7 @@ namespace owds
           if(sensors_ids.empty() == false)
             sensor_ = robot_agent_->getSensor(sensors_ids.front());
           if(sensor_ == nullptr)
-          {
             ShellDisplay::warning("[ArTrackPerceptionModule] no sensor find related to \'" + sensor_id_ + "\'. Retry at next frame.");
-            sensor_id_ = "";
-          }
         }
       }
     }
