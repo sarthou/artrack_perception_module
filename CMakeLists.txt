@@ -25,7 +25,7 @@ add_library(${PROJECT_NAME}
   src/ArTrackPerceptionModule.cpp
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                      ${catkin_LIBRARIES}
-                      ${overworld_LIBRARIES}
-                      ${ontologenius_LIBRARIES}
-                      ontologenius::ontologenius_compat)
+  ${catkin_LIBRARIES}
+  ${overworld_LIBRARIES}
+  ${ontologenius_LIBRARIES}
+  ontologenius::ontologenius_compat)
