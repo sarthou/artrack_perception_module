@@ -33,6 +33,7 @@ namespace owds
     Pose last_head_pose_;
     std::string sensor_id_;
     Sensor* sensor_;
+    std::string ar_ns_;
 
     std::map<size_t, std::string> ids_map_;
     std::unordered_set<size_t> blacklist_ids_;

@@ -35,6 +35,9 @@ namespace owds
 
     setSensorPtr();
 
+    if(ar_ns_.empty() == false)
+      reinitialize(ar_ns_ + "ar_pose_marker", ar_ns_ + "ar_pose_visible_marker");
+
     return true;
   }
 
@@ -44,6 +47,8 @@ namespace owds
       min_track_err_ = std::stod(parameter_value);
     else if(parameter_name == "sensor_id")
       sensor_id_ = parameter_value;
+    else if(parameter_name == "ns")
+      ar_ns_ = parameter_value;
     else
       ShellDisplay::warning("[ArTrackPerceptionModule] Unkown parameter " + parameter_name);
   }
