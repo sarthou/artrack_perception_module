@@ -239,8 +239,10 @@ namespace owds
       }
 
       auto it_obj_prc = percepts_.find(main_id_it->second);
-      auto conf = confidences[main_marker.id];
-      it_obj_prc->second.setConfidence(1 - (conf.second / (float)conf.first / min_track_err_));
+      auto conf_pair = confidences[main_marker.id];
+      float new_confidence = 1 - (conf_pair.second / (float)conf_pair.first / min_track_err_);
+      float prev_confidence = it_obj_prc->second.getConfidence();
+      it_obj_prc->second.setConfidence(0.75 * new_confidence + 0.25 * prev_confidence);
       std::string frame_id = main_marker.header.frame_id;
       if (frame_id[0] == '/')
         frame_id = frame_id.substr(1);
