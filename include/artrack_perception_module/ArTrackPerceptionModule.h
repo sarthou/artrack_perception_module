@@ -56,7 +56,8 @@ namespace owds
     void setPointOfInterest(const ar_track_alvar_msgs::AlvarVisibleMarker &visible_marker);
     void setAllPoiUnseen();
     void updatePercepts(const ar_track_alvar_msgs::AlvarMarkers &main_markers,
-                        const std::unordered_set<size_t> &invalid_main_markers_ids);
+                        const std::unordered_set<size_t> &invalid_main_markers_ids,
+                        std::map<size_t, std::pair<size_t, float>> &confidences);
     bool createNewPercept(const ar_track_alvar_msgs::AlvarMarker &marker);
 
     void setSensorPtr();

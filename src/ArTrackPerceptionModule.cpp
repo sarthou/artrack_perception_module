@@ -14,7 +14,8 @@ namespace owds
                                                        sensor_(nullptr),
                                                        ontologies_manipulator_(nullptr),
                                                        onto_(nullptr),
-                                                       tf2_listener_(tf_buffer_)
+                                                       tf2_listener_(tf_buffer_),
+                                                       min_track_err_(0.2) // 20 cm shift
   {
   }
 
@@ -30,8 +31,6 @@ namespace owds
     }
     onto_ = ontologies_manipulator_->get(robot_name);
     onto_->close();
-
-    min_track_err_ = 0.2; // 20 cm shift
 
     setSensorPtr();
 
@@ -71,6 +70,7 @@ namespace owds
 
     std::vector<ar_track_alvar_msgs::AlvarVisibleMarker> valid_visible_markers;
     std::unordered_set<size_t> invalid_main_markers_ids;
+    std::map<size_t, std::pair<size_t, float>> confidences;
     for (const auto &visible_marker : visible_markers.markers)
     {
       geometry_msgs::PoseStamped marker_pose;
@@ -96,9 +96,18 @@ namespace owds
         valid_visible_markers.push_back(visible_marker);
       else
         invalid_main_markers_ids.insert(visible_marker.main_id);
+
+      auto conf_it = confidences.find(visible_marker.main_id);
+      if (conf_it == confidences.end())
+        confidences.emplace((size_t)visible_marker.main_id, std::pair<size_t, float>{(size_t)1, visible_marker.confidence});
+      else
+      {
+        conf_it->second.first++;
+        conf_it->second.second += visible_marker.confidence;
+      }
     }
 
-    updatePercepts(markers, invalid_main_markers_ids);
+    updatePercepts(markers, invalid_main_markers_ids, confidences);
     setAllPoiUnseen();
 
     for (auto &visible_marker : valid_visible_markers)
@@ -207,7 +216,8 @@ namespace owds
   }
 
   void ArTrackPerceptionModule::updatePercepts(const ar_track_alvar_msgs::AlvarMarkers &main_markers,
-                                               const std::unordered_set<size_t> &invalid_main_markers_ids)
+                                               const std::unordered_set<size_t> &invalid_main_markers_ids,
+                                               std::map<size_t, std::pair<size_t, float>> &confidences)
   {
     for (const auto &main_marker : main_markers.markers)
     {
@@ -229,7 +239,8 @@ namespace owds
       }
 
       auto it_obj_prc = percepts_.find(main_id_it->second);
-      it_obj_prc->second.setConfidence(main_marker.confidence);
+      auto conf = confidences[main_marker.id];
+      it_obj_prc->second.setConfidence(1 - (conf.second / (float)conf.first / min_track_err_));
       std::string frame_id = main_marker.header.frame_id;
       if (frame_id[0] == '/')
         frame_id = frame_id.substr(1);
