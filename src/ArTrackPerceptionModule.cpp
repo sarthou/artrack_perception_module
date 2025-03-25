@@ -1,6 +1,6 @@
 #include "artrack_perception_module/ArTrackPerceptionModule.h"
 
-#include "overworld/Utility/ShellDisplay.h"
+#include "overworld/Utils/ShellDisplay.h"
 #include <unordered_map>
 
 #include <pluginlib/class_list_macros.h>
@@ -14,7 +14,8 @@ namespace owds
                                                        sensor_(nullptr),
                                                        ontologies_manipulator_(nullptr),
                                                        onto_(nullptr),
-                                                       tf2_listener_(tf_buffer_)
+                                                       tf2_listener_(tf_buffer_),
+                                                       min_track_err_(0.2) // 20 cm shift
   {
   }
 
@@ -31,9 +32,10 @@ namespace owds
     onto_ = ontologies_manipulator_->get(robot_name);
     onto_->close();
 
-    min_track_err_ = 0.2; // 20 cm shift
-
     setSensorPtr();
+
+    if (ar_ns_.empty() == false)
+      reinitialize(ar_ns_ + "ar_pose_marker", ar_ns_ + "ar_pose_visible_marker");
 
     return true;
   }
@@ -42,8 +44,10 @@ namespace owds
   {
     if (parameter_name == "min_track_err")
       min_track_err_ = std::stod(parameter_value);
-    else if(parameter_name == "sensor_id")
+    else if (parameter_name == "sensor_id")
       sensor_id_ = parameter_value;
+    else if (parameter_name == "ns")
+      ar_ns_ = parameter_value;
     else
       ShellDisplay::warning("[ArTrackPerceptionModule] Unkown parameter " + parameter_name);
   }
@@ -61,13 +65,14 @@ namespace owds
 
     if (robot_agent_ == nullptr)
       return false;
-    else if(sensor_ == nullptr)
+    else if (sensor_ == nullptr)
       return false;
     else if (sensorHasMoved())
       return false;
 
     std::vector<ar_track_alvar_msgs::AlvarVisibleMarker> valid_visible_markers;
     std::unordered_set<size_t> invalid_main_markers_ids;
+    std::map<size_t, std::pair<size_t, float>> confidences;
     for (const auto &visible_marker : visible_markers.markers)
     {
       geometry_msgs::PoseStamped marker_pose;
@@ -93,9 +98,18 @@ namespace owds
         valid_visible_markers.push_back(visible_marker);
       else
         invalid_main_markers_ids.insert(visible_marker.main_id);
+
+      auto conf_it = confidences.find(visible_marker.main_id);
+      if (conf_it == confidences.end())
+        confidences.emplace((size_t)visible_marker.main_id, std::pair<size_t, float>{(size_t)1, visible_marker.confidence});
+      else
+      {
+        conf_it->second.first++;
+        conf_it->second.second += visible_marker.confidence;
+      }
     }
 
-    updatePercepts(markers, invalid_main_markers_ids);
+    updatePercepts(markers, invalid_main_markers_ids, confidences);
     setAllPoiUnseen();
 
     for (auto &visible_marker : valid_visible_markers)
@@ -130,7 +144,7 @@ namespace owds
     return sensor_->hasMoved();
   }
 
-  bool ArTrackPerceptionModule::isInValidArea(const Pose& tag_pose)
+  bool ArTrackPerceptionModule::isInValidArea(const Pose &tag_pose)
   {
     auto tag_in_head = tag_pose.transformIn(sensor_->pose());
     return (sensor_->getFieldOfView().hasIn(tag_in_head));
@@ -204,7 +218,8 @@ namespace owds
   }
 
   void ArTrackPerceptionModule::updatePercepts(const ar_track_alvar_msgs::AlvarMarkers &main_markers,
-                                               const std::unordered_set<size_t> &invalid_main_markers_ids)
+                                               const std::unordered_set<size_t> &invalid_main_markers_ids,
+                                               std::map<size_t, std::pair<size_t, float>> &confidences)
   {
     for (const auto &main_marker : main_markers.markers)
     {
@@ -226,7 +241,10 @@ namespace owds
       }
 
       auto it_obj_prc = percepts_.find(main_id_it->second);
-      it_obj_prc->second.setConfidence(main_marker.confidence);
+      auto conf_pair = confidences[main_marker.id];
+      float new_confidence = 1 - (conf_pair.second / (float)conf_pair.first / min_track_err_);
+      float prev_confidence = it_obj_prc->second.getConfidence();
+      it_obj_prc->second.setConfidence(0.75 * new_confidence + 0.25 * prev_confidence);
       std::string frame_id = main_marker.header.frame_id;
       if (frame_id[0] == '/')
         frame_id = frame_id.substr(1);
@@ -284,17 +302,17 @@ namespace owds
 
   void ArTrackPerceptionModule::setSensorPtr()
   {
-    if(sensor_id_.empty() == false)
+    if (sensor_id_.empty() == false)
     {
-      if(robot_agent_ != nullptr)
+      if (robot_agent_ != nullptr)
       {
         sensor_ = robot_agent_->getSensor(sensor_id_);
-        if(sensor_ == nullptr)
+        if (sensor_ == nullptr)
         {
           auto sensors_ids = onto_->individuals.getFrom("hasFrameId", sensor_id_);
-          if(sensors_ids.empty() == false)
+          if (sensors_ids.empty() == false)
             sensor_ = robot_agent_->getSensor(sensors_ids.front());
-          if(sensor_ == nullptr)
+          if (sensor_ == nullptr)
             ShellDisplay::warning("[ArTrackPerceptionModule] no sensor find related to \'" + sensor_id_ + "\'. Retry at next frame.");
         }
       }

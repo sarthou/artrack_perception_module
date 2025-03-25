@@ -32,7 +32,8 @@ namespace owds
   private:
     Pose last_head_pose_;
     std::string sensor_id_;
-    Sensor* sensor_;
+    Sensor *sensor_;
+    std::string ar_ns_;
 
     std::map<size_t, std::string> ids_map_;
     std::unordered_set<size_t> blacklist_ids_;
@@ -55,7 +56,8 @@ namespace owds
     void setPointOfInterest(const ar_track_alvar_msgs::AlvarVisibleMarker &visible_marker);
     void setAllPoiUnseen();
     void updatePercepts(const ar_track_alvar_msgs::AlvarMarkers &main_markers,
-                        const std::unordered_set<size_t> &invalid_main_markers_ids);
+                        const std::unordered_set<size_t> &invalid_main_markers_ids,
+                        std::map<size_t, std::pair<size_t, float>> &confidences);
     bool createNewPercept(const ar_track_alvar_msgs::AlvarMarker &marker);
 
     void setSensorPtr();
