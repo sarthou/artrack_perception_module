@@ -15,17 +15,20 @@
   <build_depend>ontologenius</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>message_filters</build_depend>
   <build_export_depend>ar_track_alvar_msgs</build_export_depend>
   <build_export_depend>overworld</build_export_depend>
   <build_export_depend>ontologenius</build_export_depend>
   <build_export_depend>pluginlib</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>message_filters</build_export_depend>
   <exec_depend>ar_track_alvar_msgs</exec_depend>
   <exec_depend>overworld</exec_depend>
   <exec_depend>ontologenius</exec_depend>
   <exec_depend>pluginlib</exec_depend>
   <exec_depend>roscpp</exec_depend>
-
+  <exec_depend>message_filters</exec_depend>
+  
   <export>
     <overworld plugin="${prefix}/modules_plugins.xml" />
   </export>

@@ -9,11 +9,12 @@ find_package(catkin REQUIRED COMPONENTS
   overworld
   pluginlib
   roscpp
+  message_filters
 )
 find_package(ontologenius REQUIRED CONFIG)
 
 catkin_package(
-  CATKIN_DEPENDS overworld ar_track_alvar_msgs ontologenius roscpp
+  CATKIN_DEPENDS overworld ar_track_alvar_msgs ontologenius roscpp message_filters
 )
 
 include_directories(
